@@ -1,0 +1,10 @@
+in = 0
+cnt = 5
+res = 0
+inp in
+cx in
+mrk
+add res cnt
+loop
+out res
+stop
