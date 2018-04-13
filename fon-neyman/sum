@@ -1,0 +1,4 @@
+res = 0
+add res a
+add res b
+return res

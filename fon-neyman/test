@@ -1,10 +1,7 @@
 in = 0
-cnt = 5
-res = 0
+ax = 0
 inp in
-cx in
-mrk
-add res cnt
-loop
+inp ax
+res = sum in ax
 out res
 stop

@@ -1,0 +1,30 @@
+in = 0
+inp in
+inc = 1
+cnt = 2
+one = 1
+two = 2
+res = 0
+prev = 1
+pprev = 1
+if in one
+mov res one
+jmp end
+else:
+if in two
+mov res one
+jmp end
+else:
+begin:
+mov res pprev
+add res prev
+mov pprev prev
+mov prev res
+add cnt inc
+if cnt in
+jmp end
+else:
+jmp begin
+end:
+out res
+stop

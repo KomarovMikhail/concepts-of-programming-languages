@@ -1,0 +1,13 @@
+in = 0
+true = 1
+false = 0
+c = 12
+inp in
+if in c
+out true
+jmp endif
+else:
+out false
+endif:
+out c
+stop
