@@ -56,7 +56,10 @@ longjmp(global_env, exception_type)
 
 #define SAFE_MALLOC(ptr, size) \
 ptr = malloc( size ); \
-add_alloc( ptr )
+if (ptr != NULL)\
+{\
+    add_alloc( ptr );\
+}
 
 // exception types
 #define BAD_FILE 1

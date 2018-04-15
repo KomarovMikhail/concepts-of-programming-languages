@@ -4,7 +4,11 @@
 void read_file()
 {
     void * buf;
-    SAFE_MALLOC(buf, 11 * sizeof(char));
+    SAFE_MALLOC(buf, 11 * sizeof(char))
+    if (buf == NULL)
+    {
+        printf("Cannot allocate memory\n");
+    }
 
     printf("Global stack pointer: %ld\n", global_ptr);
 
@@ -27,7 +31,11 @@ int main() {
     TRY
     {
         void * buf;
-        SAFE_MALLOC(buf, 10 * sizeof(int));
+        SAFE_MALLOC(buf, 10 * sizeof(int))
+        if (buf == NULL)
+        {
+            printf("Cannot allocate memory\n");
+        }
 
         read_file();
     }
