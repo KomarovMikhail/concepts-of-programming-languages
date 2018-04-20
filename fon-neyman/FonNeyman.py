@@ -1,52 +1,65 @@
 class FonNeyman:
     def __init__(self):
         self._mem = [0] * 1024 * 1024
-        self._mem[0] = 4
+        self._stack = 4
+        self._ptr = 0
         self._cust_progs = {}
         self._labels = {}
 
-    def _running_mode(self, ptr, args):
-        self._mem[3] = ptr
-        for arg in args:
-            self._mem[3] += 4
-            self._mem[self._mem[3] + 3] = int(arg)
-            self._mem[self._mem[3] + 2] = int(arg)
-        self._mem[3] += 4
-        while True:
-            if self._mem[self._mem[3]] == 1:
-                self._mov(self._mem[self._mem[3]+1], self._mem[self._mem[3]+3])
-            elif self._mem[self._mem[3]] == 2:
-                self._add(self._mem[self._mem[3]+1], self._mem[self._mem[3]+3])
-            elif self._mem[self._mem[3]] == 3:
-                self._inp(self._mem[self._mem[3]+3])
-            elif self._mem[self._mem[3]] == 4:
-                self._out(self._mem[self._mem[3]+3])
-            elif self._mem[self._mem[3]] == 255:
-                break
-            elif self._mem[self._mem[3]] == 254:
-                self._mem[ptr+3] = self._mem[self._mem[self._mem[3]+3]+3]
-                break
-            elif self._mem[self._mem[3]] == 0:
-                if self._mem[self._mem[3]+1] == 0:
-                    if self._mem[self._mem[3]+2] is not None:
-                        self._mem[self._mem[3]+3] = self._mem[self._mem[3]+2]
-                    else:
-                        self._mem[self._mem[3] + 2] = self._mem[self._mem[self._mem[3]+3]+3]
-                        self._mem[self._mem[3] + 3] = self._mem[self._mem[3] + 2]
-                else:
-                    curr_prt = self._mem[3]
-                    self._running_mode(self._mem[self._mem[3]+1], {})
-                    self._mem[3] = curr_prt
-                    self._mem[self._mem[3] + 3] = self._mem[self._mem[self._mem[3]+1]+3]
-            elif self._mem[self._mem[3]] == 8:
-                pass
-            elif self._mem[self._mem[3]] == 9:
-                self._mem[3] = self._mem[self._mem[3]+3]
-            elif self._mem[self._mem[3]] == 10:
-                if self._mem[self._mem[self._mem[3]+2]+3] != self._mem[self._mem[self._mem[3]+3]+3]:
-                    self._mem[3] = self._mem[self._mem[3]+1]
+        # buffers
+        self._curr_ptr = None
+        self._instruction_code = None
+        self._return_ptr = []
+        self._curr_func = None
 
-            self._mem[3] += 4
+    def _running_mode(self, ptr, args):
+        self._curr_func = ptr
+        self._ptr = ptr
+        for arg in args:
+            self._cust_progs += 4
+            self._mem[self._ptr + 3] = int(arg)
+            self._mem[self._ptr + 2] = int(arg)
+        self._ptr += 4
+        while True:
+            self._instruction_code = self._mem[self._ptr]
+            if self._instruction_code == 1:
+                self._mov(self._mem[self._ptr + 1], self._mem[self._ptr + 3])
+            elif self._instruction_code == 2:
+                self._add(self._mem[self._ptr + 1], self._mem[self._ptr + 3])
+            elif self._instruction_code == 3:
+                self._inp(self._mem[self._ptr + 3])
+            elif self._instruction_code == 4:
+                self._out(self._mem[self._ptr + 3])
+            elif self._instruction_code == 255:
+                if len(self._return_ptr) == 0:
+                    break
+                else:
+                    self._ptr = self._return_ptr.pop()
+            elif self._instruction_code == 254:
+                self._mem[self._curr_func+3] = self._mem[self._mem[self._ptr + 3] + 3]
+                if len(self._return_ptr) == 0:
+                    break
+                else:
+                    self._ptr = self._return_ptr.pop()
+                    self._mem[self._ptr + 3] = self._mem[self._mem[self._ptr + 1] + 3]
+            elif self._instruction_code == 0:
+                if self._mem[self._ptr + 1] == 0:
+                    if self._mem[self._ptr + 2] is not None:
+                        self._mem[self._ptr + 3] = self._mem[self._ptr + 2]
+                    else:
+                        self._mem[self._ptr + 2] = self._mem[self._mem[self._ptr + 3] + 3]
+                        self._mem[self._ptr + 3] = self._mem[self._ptr + 2]
+                else:
+                    self._return_ptr.append(self._ptr)
+                    self._curr_func = self._mem[self._ptr + 1]
+                    self._ptr = self._mem[self._ptr + 1]
+            elif self._instruction_code == 9:
+                self._ptr = self._mem[self._ptr + 3]
+            elif self._instruction_code == 10:
+                if self._mem[self._mem[self._ptr + 2] + 3] != self._mem[self._mem[self._ptr + 3] + 3]:
+                    self._ptr = self._mem[self._ptr + 1]
+            self._ptr += 4
+        print(self._mem[0:120])
 
     def _mov(self, dest, src):
         """Command code: 1"""
@@ -139,7 +152,8 @@ class FonNeyman:
             for label, pointers in jumps.items():
                 for pointer in pointers:
                     self._mem[pointer+3] = self._labels.get(label)
-            self._mem[0] += count
+            self._stack += count
+            print(self._mem[0:120])
 
     def run(self):
         print("Welcome to Fon Neyman Virtual Machine"
@@ -154,10 +168,6 @@ class FonNeyman:
                       "\"read [file_name]\" - read program from file")
             elif com[0] == "shutdown":
                 break
-            elif com[0] == "prog":
-                self._cust_progs[com[1]] = [self._mem[0], {}]
-                self._coding_mode(com[1], self._mem[0])
-                print("Created program " + com[1])
             elif com[0] == "run":
                 ptr = self._cust_progs.get(com[1])
                 if ptr is None:
@@ -176,8 +186,8 @@ class FonNeyman:
                         if i == 0 or i == 1:
                             continue
                         args[com[i]] = 0
-                self._cust_progs[com[1]] = [self._mem[0], args, len(com)-2]
-                self._read_from_file(com[1], self._mem[0])
+                self._cust_progs[com[1]] = [self._stack, args, len(com)-2]
+                self._read_from_file(com[1], self._stack)
             else:
                 print("Unknown command")
         print("Goodbye, see you.")

@@ -2,6 +2,6 @@ in = 0
 ax = 0
 inp in
 inp ax
-res = sum in ax
-out res
+result = sum in ax
+out result
 stop
