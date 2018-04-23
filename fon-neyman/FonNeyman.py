@@ -9,17 +9,22 @@ class FonNeyman:
         # buffers
         self._curr_ptr = None
         self._instruction_code = None
-        self._return_ptr = []
         self._curr_func = None
+        self._last_frame = 0
 
     def _running_mode(self, ptr, args):
+        self._last_frame = self._stack
+        self._mem[self._stack:self._stack+4] = [252, 0, 0, 0]
+        self._stack += 4
         self._curr_func = ptr
         self._ptr = ptr
+
         for arg in args:
             self._cust_progs += 4
             self._mem[self._ptr + 3] = int(arg)
             self._mem[self._ptr + 2] = int(arg)
         self._ptr += 4
+
         while True:
             self._instruction_code = self._mem[self._ptr]
             if self._instruction_code == 1:
@@ -31,16 +36,22 @@ class FonNeyman:
             elif self._instruction_code == 4:
                 self._out(self._mem[self._ptr + 3])
             elif self._instruction_code == 255:
-                if len(self._return_ptr) == 0:
+                if self._mem[self._last_frame] == 252:
                     break
                 else:
-                    self._ptr = self._return_ptr.pop()
+                    self._ptr = self._mem[self._last_frame + 3]
+                    self._mem[self._last_frame:self._last_frame + 4] = [0, 0, 0, 0]
+                    self._last_frame -= 4
+                    self._stack -= 4
             elif self._instruction_code == 254:
                 self._mem[self._curr_func+3] = self._mem[self._mem[self._ptr + 3] + 3]
-                if len(self._return_ptr) == 0:
+                if self._mem[self._last_frame] == 252:
                     break
                 else:
-                    self._ptr = self._return_ptr.pop()
+                    self._ptr = self._mem[self._last_frame + 3]
+                    self._mem[self._last_frame:self._last_frame+4] = [0, 0, 0, 0]
+                    self._last_frame -= 4
+                    self._stack -= 4
                     self._mem[self._ptr + 3] = self._mem[self._mem[self._ptr + 1] + 3]
             elif self._instruction_code == 0:
                 if self._mem[self._ptr + 1] == 0:
@@ -50,8 +61,10 @@ class FonNeyman:
                         self._mem[self._ptr + 2] = self._mem[self._mem[self._ptr + 3] + 3]
                         self._mem[self._ptr + 3] = self._mem[self._ptr + 2]
                 else:
-                    self._return_ptr.append(self._ptr)
                     self._curr_func = self._mem[self._ptr + 1]
+                    self._mem[self._stack:self._stack+4] = [253, 0, 0, self._ptr]
+                    self._stack += 4
+                    self._last_frame += 4
                     self._ptr = self._mem[self._ptr + 1]
             elif self._instruction_code == 9:
                 self._ptr = self._mem[self._ptr + 3]
@@ -59,7 +72,11 @@ class FonNeyman:
                 if self._mem[self._mem[self._ptr + 2] + 3] != self._mem[self._mem[self._ptr + 3] + 3]:
                     self._ptr = self._mem[self._ptr + 1]
             self._ptr += 4
-        print(self._mem[0:120])
+
+        self._mem[self._last_frame:self._last_frame + 4] = [0, 0, 0, 0]
+        self._last_frame -= 4
+        self._stack -= 4
+        # print(self._mem[0:120])
 
     def _mov(self, dest, src):
         """Command code: 1"""
@@ -153,7 +170,7 @@ class FonNeyman:
                 for pointer in pointers:
                     self._mem[pointer+3] = self._labels.get(label)
             self._stack += count
-            print(self._mem[0:120])
+            # print(self._mem[0:120])
 
     def run(self):
         print("Welcome to Fon Neyman Virtual Machine"
