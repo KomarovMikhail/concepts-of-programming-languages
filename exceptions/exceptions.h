@@ -7,9 +7,11 @@
 #include <stdio.h>
 
 #define STACK_SIZE 100
+#define MAX_NESTED 100
 
-static jmp_buf global_env;
 void* global_stack[STACK_SIZE];
+jmp_buf env_stack[MAX_NESTED];
+size_t env_ptr = 0;
 size_t global_ptr = 0; // указатель на вершину стека
 
 // добавляем указатель на аллоцированную память в стек
@@ -33,11 +35,11 @@ void clean_alloc()
 }
 
 #define TRY \
-do {\
+{\
     add_alloc(NULL);\
     jmp_buf local_env;\
-    memcpy(global_env, local_env, sizeof(jmp_buf));\
-    switch( setjmp(global_env) )\
+    memcpy(env_stack[env_ptr++], local_env, sizeof(jmp_buf));\
+    switch( setjmp(env_stack[env_ptr-1]) )\
     {\
         case 0:
 
@@ -47,11 +49,11 @@ do {\
 
 #define END_TRY \
     }\
-} while(0)
+}
 
 #define THROW(exception_type) \
 clean_alloc();\
-longjmp(global_env, exception_type)
+longjmp(env_stack[--env_ptr], exception_type)
 
 
 #define SAFE_MALLOC(ptr, size) \
@@ -65,5 +67,6 @@ if (ptr != NULL)\
 #define BAD_FILE 1
 #define OUT_OF_MEMORY 2
 #define INVALID_ARGUMENT 3
+#define RUNTIME_ERROR 4
 
 #endif //EXCEPTIONS_EXCEPTIONS_H

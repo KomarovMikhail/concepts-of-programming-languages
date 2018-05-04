@@ -27,28 +27,53 @@ void read_file()
 }
 
 int main() {
-    printf("Global stack pointer: %ld\n", global_ptr);
+//    printf("Global stack pointer: %ld\n", global_ptr);
+//    TRY
+//    {
+//        void * buf;
+//        SAFE_MALLOC(buf, 10 * sizeof(int))
+//        if (buf == NULL)
+//        {
+//            printf("Cannot allocate memory\n");
+//        }
+//
+//        read_file();
+//    }
+//    CATCH(INVALID_ARGUMENT)
+//    {
+//        printf("Zero input\n");
+//    }
+//    CATCH(BAD_FILE)
+//    {
+//        printf("Caught BAD_FILE exception\n");
+//    }
+//    END_TRY;
+//    printf("Global stack pointer: %ld\n", global_ptr);
     TRY
     {
-        void * buf;
-        SAFE_MALLOC(buf, 10 * sizeof(int))
-        if (buf == NULL)
-        {
-            printf("Cannot allocate memory\n");
+        TRY {
+           printf("0");
+           THROW(RUNTIME_ERROR);
         }
+        CATCH(RUNTIME_ERROR) {
+           printf("1");
+           THROW(RUNTIME_ERROR);
+           printf("5");
+        }
+        END_TRY;
+    }
+    CATCH(RUNTIME_ERROR) {
+        printf("2");
 
-        read_file();
-    }
-    CATCH(INVALID_ARGUMENT)
-    {
-        printf("Zero input\n");
-    }
-    CATCH(BAD_FILE)
-    {
-        printf("Caught BAD_FILE exception\n");
+        TRY {
+            printf("3");
+        }
+        CATCH(RUNTIME_ERROR) {
+            printf("4");
+        }
+        END_TRY;
     }
     END_TRY;
-    printf("Global stack pointer: %ld\n", global_ptr);
 
     return 0;
 }
