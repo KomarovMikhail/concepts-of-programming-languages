@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 #define STACK_SIZE 100
-#define MAX_NESTED 100
+#define MAX_NESTED 100000
 
 void* global_stack[STACK_SIZE];
 jmp_buf env_stack[MAX_NESTED];
@@ -15,24 +15,10 @@ size_t env_ptr = 0;
 size_t global_ptr = 0; // указатель на вершину стека
 
 // добавляем указатель на аллоцированную память в стек
-void add_alloc(void* ptr)
-{
-    if (global_ptr + 1 == STACK_SIZE)
-    {
-        printf("Memory exhausted\n");
-        exit(1);
-    }
-    global_stack[global_ptr++] = ptr;
-}
+void add_alloc(void* ptr);
 
 // очищаем стек до последнего TRY
-void clean_alloc()
-{
-    while (global_stack[--global_ptr] != NULL)
-    {
-        free(global_stack[global_ptr]);
-    }
-}
+void clean_alloc();
 
 #define TRY \
 {\
