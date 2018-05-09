@@ -6,13 +6,12 @@
 #include <string.h>
 #include <stdio.h>
 
-#define STACK_SIZE 100
-#define MAX_NESTED 100000
-
-void* global_stack[STACK_SIZE];
-jmp_buf env_stack[MAX_NESTED];
-size_t env_ptr = 0;
-size_t global_ptr = 0; // указатель на вершину стека
+void** global_stack;
+jmp_buf* env_stack;
+size_t env_ptr;
+size_t global_ptr; // указатель на вершину стека
+size_t stack_size;
+size_t nested_size;
 
 // добавляем указатель на аллоцированную память в стек
 void add_alloc(void* ptr);
@@ -20,10 +19,18 @@ void add_alloc(void* ptr);
 // очищаем стек до последнего TRY
 void clean_alloc();
 
+void init_exceptions();
+void free_exceptions();
+
 #define TRY \
 {\
     add_alloc(NULL);\
     jmp_buf local_env;\
+    if (env_ptr + 1 == nested_size)\
+    {\
+        nested_size += 100;\
+        env_stack = (jmp_buf*)realloc(env_stack, nested_size * sizeof(jmp_buf));\
+    }\
     memcpy(env_stack[env_ptr++], local_env, sizeof(jmp_buf));\
     switch( setjmp(env_stack[env_ptr-1]) )\
     {\
@@ -47,6 +54,10 @@ ptr = malloc( size ); \
 if (ptr != NULL)\
 {\
     add_alloc( ptr );\
+}\
+else\
+{\
+    THROW(OUT_OF_MEMORY);\
 }
 
 // exception types

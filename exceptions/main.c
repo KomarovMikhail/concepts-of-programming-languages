@@ -5,10 +5,6 @@ void read_file()
 {
     void * buf;
     SAFE_MALLOC(buf, 11 * sizeof(char))
-    if (buf == NULL)
-    {
-        printf("Cannot allocate memory\n");
-    }
 
     printf("Global stack pointer: %ld\n", global_ptr);
 
@@ -27,53 +23,29 @@ void read_file()
 }
 
 int main() {
-//    printf("Global stack pointer: %ld\n", global_ptr);
-//    TRY
-//    {
-//        void * buf;
-//        SAFE_MALLOC(buf, 10 * sizeof(int))
-//        if (buf == NULL)
-//        {
-//            printf("Cannot allocate memory\n");
-//        }
-//
-//        read_file();
-//    }
-//    CATCH(INVALID_ARGUMENT)
-//    {
-//        printf("Zero input\n");
-//    }
-//    CATCH(BAD_FILE)
-//    {
-//        printf("Caught BAD_FILE exception\n");
-//    }
-//    END_TRY;
-//    printf("Global stack pointer: %ld\n", global_ptr);
+    init_exceptions();
+    printf("Global stack pointer: %ld\n", global_ptr);
     TRY
     {
-        TRY {
-           printf("0");
-           THROW(RUNTIME_ERROR);
-        }
-        CATCH(RUNTIME_ERROR) {
-           printf("1");
-           THROW(RUNTIME_ERROR);
-           printf("5");
-        }
-        END_TRY;
+        void * buf;
+        SAFE_MALLOC(buf, 10 * sizeof(int))
+        read_file();
     }
-    CATCH(RUNTIME_ERROR) {
-        printf("2");
-
-        TRY {
-            printf("3");
-        }
-        CATCH(RUNTIME_ERROR) {
-            printf("4");
-        }
-        END_TRY;
+    CATCH(INVALID_ARGUMENT)
+    {
+        printf("Zero input\n");
+    }
+    CATCH(BAD_FILE)
+    {
+        printf("Caught BAD_FILE exception\n");
+    }
+    CATCH(OUT_OF_MEMORY)
+    {
+        printf("Caught OUT_OF_MEMORY exception\n");
     }
     END_TRY;
+    printf("Global stack pointer: %ld\n", global_ptr);
 
+    free_exceptions();
     return 0;
 }
