@@ -1,4 +1,4 @@
 all:
-	gcc main.c exceptions.h -o main
+	gcc main.c exceptions.h exceptions.c -o main
 clean:
 	rm main

@@ -5,10 +5,6 @@ void read_file()
 {
     void * buf;
     SAFE_MALLOC(buf, 11 * sizeof(char))
-    if (buf == NULL)
-    {
-        printf("Cannot allocate memory\n");
-    }
 
     printf("Global stack pointer: %ld\n", global_ptr);
 
@@ -27,16 +23,12 @@ void read_file()
 }
 
 int main() {
+    init_exceptions();
     printf("Global stack pointer: %ld\n", global_ptr);
     TRY
     {
         void * buf;
         SAFE_MALLOC(buf, 10 * sizeof(int))
-        if (buf == NULL)
-        {
-            printf("Cannot allocate memory\n");
-        }
-
         read_file();
     }
     CATCH(INVALID_ARGUMENT)
@@ -47,8 +39,13 @@ int main() {
     {
         printf("Caught BAD_FILE exception\n");
     }
+    CATCH(OUT_OF_MEMORY)
+    {
+        printf("Caught OUT_OF_MEMORY exception\n");
+    }
     END_TRY;
     printf("Global stack pointer: %ld\n", global_ptr);
 
+    free_exceptions();
     return 0;
 }
