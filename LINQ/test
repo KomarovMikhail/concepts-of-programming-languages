@@ -1,0 +1,8 @@
+LINQ extends the language by the addition of query expressions which are akin to SQL statements and can
+be used to conveniently extract and process data from arrays enumerable classes XML documents relational
+databases and third-party data sources Other uses which utilize query expressions as a general framework
+for readably composing arbitrary computations include the construction of event handlers or monadic parsers
+
+LINQ also defines a set of method names called standard query operators or standard sequence operators along with
+translation rules used by the compiler to translate fluent-style query expressions into expressions using
+these method names lambda expressions and anonymous types
